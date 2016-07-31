@@ -4,8 +4,7 @@ extern crate serde_json;
 extern crate time;
 
 use std::io;
-use std::cell::{RefCell};
-use std::rc::Rc;
+use std::sync::RwLock;
 use std::time::Duration;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
@@ -32,15 +31,84 @@ pub enum RestError {
 }
 
 pub struct RestResponse {
-    pub code: u16,
-    pub status: hyper::status::StatusCode,
-    pub headers: hyper::header::Headers,
+    code: u16,
+    status: hyper::status::StatusCode,
+    headers: hyper::header::Headers,
     pub body: String,
 }
 
-pub struct RestClient;
+pub enum Method {
+    Get,
+    Post,
+    Put
+}
+
+pub struct RestRequest {
+
+}
+
+pub struct Endpoint {
+    url: String,
+}
+
+pub struct RestClient {
+    endpoint: Endpoint,
+    query: String
+}
+
+impl Endpoint {
+    pub fn configure() -> Endpoint {
+        Endpoint {  url: String::new() }
+    }
+
+    pub fn url(&mut self, url: &str) -> &mut Endpoint {
+        self.url.push_str(url);
+        self
+    }
+
+    pub fn timeout(&mut self, timeout: Duration) -> &mut Endpoint {
+        self
+    }
+
+    pub fn build(&self) -> RestClient {
+        RestClient::new(self)
+    }
+}
+
+impl Clone for Endpoint {
+    fn clone(&self) -> Self {
+        Endpoint{ url: self.url.to_owned() }
+    }
+}
 
 impl RestClient {
+    fn new(endpoint: &Endpoint) -> RestClient {
+        RestClient { endpoint: endpoint.to_owned(), query: String::new() }
+    }
 
+    pub fn request(self, method: Method) -> RestRequest {
+        RestRequest::new(method)
+    }
+
+    pub fn query(self, query: &str) -> RestClient {
+        self.query.push_str(query);
+        self
+    }
+
+    pub fn get(&self) -> Result<RestResponse, RestError> {
+        Ok(RestResponse {
+            code: 1,
+            status: hyper::status::StatusCode::Accepted,
+            headers: hyper::header::Headers::default(),
+            body: "".to_string()
+        })
+    }
+}
+
+impl RestRequest {
+    fn new(method: Method) -> RestRequest
+    {
+
+    }
 
 }

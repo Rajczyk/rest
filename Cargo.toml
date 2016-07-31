@@ -1,10 +1,10 @@
 [package]
-name = "simple-rest"
+name = "simple_rest"
 version = "0.1.0"
 authors = ["Rajczyk <Rajczyk@users.noreply.github.com>"]
 
 [lib]
-name = "simple-rest"
+name = "simple_rest"
 path = "src/lib.rs"
 
 [dependencies]
