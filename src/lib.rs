@@ -3,112 +3,146 @@ extern crate url;
 extern crate serde_json;
 extern crate time;
 
-use std::io;
-use std::sync::RwLock;
-use std::time::Duration;
-use std::collections::BinaryHeap;
-use std::collections::HashMap;
 
-use hyper::client::{Client, Request, Response, DefaultTransport as HttpStream};
-use hyper::header::Connection;
-use hyper::{Decoder, Encoder, Next};
-use hyper::Method::{Get};
 
-use url::Url;
+pub mod Rest {
 
-use serde_json::Value;
-use serde_json::builder::{ArrayBuilder, ObjectBuilder};
 
-use std::io::Error as IoError;
-use hyper::Error as HttpError;
-use url::ParseError as UrlParseError;
+    use std::io;
+    use std::sync::RwLock;
+    use std::time::Duration;
+    use std::collections::BinaryHeap;
+    use std::collections::HashMap;
 
-#[derive(Debug)]
-pub enum RestError {
-    UrlParseError(UrlParseError),
-    HttpRequestError(HttpError),
-    HttpIoError(IoError)
-}
+    use hyper::client::{Client as HyperClient, Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
+    use hyper::header::{Connection, Headers};
+    use hyper::{Decoder, Encoder, Next};
+    use hyper::Method::{Get};
+    use hyper::status::StatusCode;
 
-pub struct RestResponse {
-    code: u16,
-    status: hyper::status::StatusCode,
-    headers: hyper::header::Headers,
-    pub body: String,
-}
 
-pub enum Method {
-    Get,
-    Post,
-    Put
-}
+    use url::Url;
 
-pub struct RestRequest {
+    use serde_json::Value;
+    use serde_json::builder::{ArrayBuilder, ObjectBuilder};
 
-}
+    use std::io::Error as IoError;
+    use hyper::Error as HttpError;
+    use url::ParseError as UrlParseError;
 
-pub struct Endpoint {
-    url: String,
-}
-
-pub struct RestClient {
-    endpoint: Endpoint,
-    query: String
-}
-
-impl Endpoint {
-    pub fn configure() -> Endpoint {
-        Endpoint {  url: String::new() }
+    #[derive(Debug)]
+    pub enum Error {
+        UrlParseError(UrlParseError),
+        HttpRequestError(HttpError),
+        HttpIoError(IoError)
     }
 
-    pub fn url(&mut self, url: &str) -> &mut Endpoint {
-        self.url.push_str(url);
-        self
+    pub struct Response {
+        code: u16,
+        status: StatusCode,
+        headers: Headers,
+        pub body: String,
     }
 
-    pub fn timeout(&mut self, timeout: Duration) -> &mut Endpoint {
-        self
+    pub enum Method {
+        Get,
+        Post,
+        Put
     }
 
-    pub fn build(&self) -> RestClient {
-        RestClient::new(self)
-    }
-}
-
-impl Clone for Endpoint {
-    fn clone(&self) -> Self {
-        Endpoint{ url: self.url.to_owned() }
-    }
-}
-
-impl RestClient {
-    fn new(endpoint: &Endpoint) -> RestClient {
-        RestClient { endpoint: endpoint.to_owned(), query: String::new() }
+    pub struct RequestBuilder {
+        query: String
     }
 
-    pub fn request(self, method: Method) -> RestRequest {
-        RestRequest::new(method)
+    pub struct Request {
+
     }
 
-    pub fn query(self, query: &str) -> RestClient {
-        self.query.push_str(query);
-        self
+    pub struct EndpointBuilder {
+        url: String,
     }
 
-    pub fn get(&self) -> Result<RestResponse, RestError> {
-        Ok(RestResponse {
-            code: 1,
-            status: hyper::status::StatusCode::Accepted,
-            headers: hyper::header::Headers::default(),
-            body: "".to_string()
-        })
+    pub struct Endpoint {
+        endpoint: EndpointBuilder,
     }
-}
 
-impl RestRequest {
-    fn new(method: Method) -> RestRequest
+    pub struct Client {
+
+    }
+
+    impl Endpoint {
+        pub fn configure() -> EndpointBuilder {
+            EndpointBuilder{ url: String::new() }
+        }
+
+        fn new(builder: &EndpointBuilder) -> Endpoint
+        {
+            Endpoint { endpoint: builder.to_owned()}
+        }
+    }
+
+    impl EndpointBuilder
     {
+        pub fn url(&mut self, url: &str) -> &mut EndpointBuilder {
+            self.url.push_str(url);
+            self
+        }
+
+        pub fn timeout(&mut self, timeout: Duration) -> &mut EndpointBuilder {
+            self
+        }
+
+        pub fn build(&self) -> Endpoint {
+            Endpoint::new(self)
+        }
+    }
+
+
+    impl Clone for EndpointBuilder {
+        fn clone(&self) -> Self {
+            EndpointBuilder{ url: self.url.to_owned() }
+        }
+    }
+
+    impl Client {
+
+
+        pub fn execute(endpoint: Endpoint, request: Request) -> Result<Response, Error> {
+            Ok(Response {
+                code: 1,
+                status: StatusCode::Accepted,
+                headers: Headers::default(),
+                body: "".to_string()
+            })
+        }
+
+
+    }
+
+    impl RequestBuilder {
+        pub fn query(&mut self, query: &str) -> &mut RequestBuilder {
+            self.query.push_str(query);
+            self
+        }
+
+        pub fn build(&self) -> Request {
+            Request::new()
+        }
+
+    }
+
+    impl Request {
+
+        fn new() -> Request {
+            Request {}
+        }
+
+        pub fn get() -> RequestBuilder {
+            RequestBuilder { query: String::new()  }
+        }
+
 
     }
 
 }
+
