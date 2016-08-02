@@ -118,24 +118,32 @@ pub mod Rest {
             let client = hyper::Client::new().unwrap();
             let (tx, rx) = mpsc::channel();
 
+            let req2 = Request2 {
+                url : url.clone()
+            };
+
             let handler = Handler {
-                request: request,
+                request: req2,
                 response: None,
                 sender: tx,
-                timeout: timeout,
+                //timeout: timeout,
                 //user_agent: user_agent.to_owned(),
             };
 
             let r  = client.request(url, handler);
 
-            let _ = rx.recv();
+            println!("Waiting for response");
+            let (re, res) = rx.recv().unwrap();
+            println!("Got for response");
 
             client.close();
 
 
+            let v = res.unwrap().body.unwrap();
 
-            println!("Response: {}", handler.response.status());
-            println!("Headers:\n{}", handler.response.headers());
+            println!("Printing Response Next:");
+            println!("{}", String::from_utf8(v).unwrap());
+            //println!("Headers:\n{}", handler.response.headers());
 
             Ok(Response {
                 code: 1,
@@ -175,16 +183,16 @@ pub mod Rest {
 
 
     pub struct Handler {
-        request: Request,
-        response: Option<Response>,
+        request: Request2,
+        response: Option<Response2>,
         sender: ResultSender,
-        timeout: u64,
+        //timeout: u64,
         //user_agent: String,
     }
 
     impl Handler {
         fn read(&self) -> Next {
-            Next::read().timeout(Duration::from_secs(self.timeout))
+            Next::read().timeout(Duration::from_secs(1000))
         }
 
         fn return_response(&self) -> Next {
@@ -196,6 +204,8 @@ pub mod Rest {
             self.sender.send((self.request.clone(), self.response.clone())).unwrap();
         }
     }
+
+    pub type ResultSender = mpsc::Sender<(Request2, Option<Response2>)>;
 
     impl hyper::client::Handler<HttpStream> for Handler {
         fn on_request(&mut self, req: &mut HyperRequest) -> Next {
@@ -213,18 +223,18 @@ pub mod Rest {
             let status = response.status();
             let headers = response.headers();
             //debug!("Got {} for {}", status, self.request.url);
-            self.response = Some(Response {
+            self.response = Some(Response2 {
                 status: status.clone(),
                 headers: headers.clone(),
                 body: None
             });
             match status {
                 &StatusCode::Ok => {
-                    if is_html(headers) {
+                    //if is_html(headers) {
                         self.read()
-                    } else {
-                        self.return_response()
-                    }
+                    //} else {
+                    //    self.return_response()
+                    //}
                 },
                 _ => self.return_response()
             }
@@ -237,7 +247,6 @@ pub mod Rest {
                     response.body = Some(Vec::new());
                 }
                 if let Some(ref mut body) = response.body {
-                    // TODO - check that this really appends data, not overrides
                     read_result = Some(io::copy(decoder, body));
                 }
             }
@@ -256,6 +265,7 @@ pub mod Rest {
             } else {
                 panic!();
             }
+
         }
 
         fn on_error(&mut self, err: hyper::Error) -> Next {
@@ -277,6 +287,32 @@ pub mod Rest {
     fn read() -> Next {
         Next::read().timeout(Duration::from_secs(10))
     }
+
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub struct Request2 {
+        pub url: Url
+    }
+
+    impl Request2 {
+        pub fn new(url: Url) -> Self {
+            Request2 { url: url }
+        }
+
+        pub fn from_str(url: &str) -> Self {
+            Request2::new(url.parse().unwrap())
+        }
+
+
+    }
+
+    #[derive(Debug, Clone)]
+    pub struct Response2 {
+        pub status: StatusCode,
+        pub headers: Headers,
+        pub body: Option<Vec<u8>>
+    }
+
 
 }
 
