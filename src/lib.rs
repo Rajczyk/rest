@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 extern crate hyper;
 extern crate serde_json;
 extern crate regex;

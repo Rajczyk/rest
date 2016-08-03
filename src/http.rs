@@ -128,7 +128,7 @@ impl hyper::client::Handler<HttpStream> for Handler {
     fn on_response(&mut self, response: HyperResponse) -> Next {
         let status = response.status();
         let headers = response.headers();
-        //debug!("Got {} for {}", status, self.request.url);
+        debug!("Got {} for {}", status, self.request.url);
         self.response = Some(Response {
             status: status.clone(),
             headers: headers.clone(),

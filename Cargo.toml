@@ -8,6 +8,7 @@ name = "simple_rest"
 path = "src/lib.rs"
 
 [dependencies]
+log = "0.3.6"
 url =  "1.1.1"
 time =  "0.1.35"
 regex = "0.1.73"
