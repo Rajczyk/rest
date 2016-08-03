@@ -1,13 +1,9 @@
-
-
 use http;
 use serializer;
 
 use std::time::Duration;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
-
-
 
 use std::io::Error as IoError;
 use hyper::Error as HttpError;

@@ -10,6 +10,7 @@ extern crate time;
 mod http;
 mod serializer;
 mod validator;
+mod rest;
 
 //export
-pub mod rest;
+pub use rest::{Client, Endpoint, Request};

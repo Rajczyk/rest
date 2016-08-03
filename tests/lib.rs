@@ -1,9 +1,9 @@
-extern crate simple_rest;
+extern crate rest;
 
 #[cfg(test)]
 mod tests {
 
-    use simple_rest::rest;
+    use rest;
     use std::time::Duration;
 
     #[test]
