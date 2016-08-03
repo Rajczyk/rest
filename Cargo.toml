@@ -8,9 +8,9 @@ name = "simple_rest"
 path = "src/lib.rs"
 
 [dependencies]
-log = "0.3.6"
-url =  "1.1.1"
-time =  "0.1.35"
-regex = "0.1.73"
+log = "*"
+url =  "*"
+time =  "*"
+regex = "*"
 hyper = { git = "https://github.com/hyperium/hyper" }
 serde_json = { git = "https://github.com/serde-rs/json.git" }
