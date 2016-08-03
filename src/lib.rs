@@ -3,27 +3,15 @@ extern crate url;
 extern crate serde_json;
 extern crate time;
 
-
+mod http;
 
 pub mod Rest {
 
+    use http;
 
-    use std::io;
-    use std::sync::mpsc::{Sender};
-    use std::sync::mpsc;
     use std::time::Duration;
     use std::collections::BinaryHeap;
     use std::collections::HashMap;
-
-    use hyper::client::{Client as HyperClient, Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
-    use hyper::header::{Connection, Headers, UserAgent};
-    use hyper::{Decoder, Encoder, Next};
-    use hyper::Method::{Get};
-    use hyper::status::StatusCode;
-    use hyper;
-
-
-    use url::Url;
 
     use serde_json::Value;
     use serde_json::builder::{ArrayBuilder, ObjectBuilder};
@@ -39,12 +27,12 @@ pub mod Rest {
         HttpIoError(IoError)
     }
 
-    pub struct Response {
-        code: u16,
-        status: StatusCode,
-        headers: Headers,
-        pub body: String,
-    }
+    //pub struct Response {
+    //    code: u16,
+     //   status: StatusCode,
+     //   headers: Headers,
+     //   pub body: String,
+   // }
 
     pub enum Method {
         Get,
@@ -99,7 +87,6 @@ pub mod Rest {
         }
     }
 
-
     impl Clone for EndpointBuilder {
         fn clone(&self) -> Self {
             EndpointBuilder{ url: self.url.to_owned() }
@@ -107,53 +94,21 @@ pub mod Rest {
     }
 
     impl Client {
+        pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
+
+            let http_client = http::Client::new();;
 
 
-        pub fn execute(endpoint: Endpoint, request: Request) -> Result<Response, Error> {
+            http_client.request("http://jsonplaceholder.typicode.com/posts/1");
 
-
-            println!("hyper code");
-            let mut url = Url::parse("http://jsonplaceholder.typicode.com/posts/1").unwrap();
-
-            let client = hyper::Client::new().unwrap();
-            let (tx, rx) = mpsc::channel();
-
-            let req2 = Request2 {
-                url : url.clone()
-            };
-
-            let handler = Handler {
-                request: req2,
-                response: None,
-                sender: tx,
-                //timeout: timeout,
-                //user_agent: user_agent.to_owned(),
-            };
-
-            let r  = client.request(url, handler);
-
-            println!("Waiting for response");
-            let (re, res) = rx.recv().unwrap();
-            println!("Got for response");
-
-            client.close();
-
-
-            let v = res.unwrap().body.unwrap();
-
-            println!("Printing Response Next:");
-            println!("{}", String::from_utf8(v).unwrap());
-            //println!("Headers:\n{}", handler.response.headers());
-
-            Ok(Response {
-                code: 1,
-                status: StatusCode::Accepted,
-                headers: Headers::default(),
-                body: "".to_string()
-            })
+            Ok(String::new())
+            //Ok(Response {
+            //   code: 1,
+            //    status: StatusCode::Accepted,
+            //    headers: Headers::default(),
+            //    body: "".to_string()
+            //})
         }
-
-
     }
 
     impl RequestBuilder {
@@ -165,153 +120,18 @@ pub mod Rest {
         pub fn build(&self) -> Request {
             Request::new()
         }
-
     }
 
     impl Request {
-
         fn new() -> Request {
             Request {}
         }
 
         pub fn get() -> RequestBuilder {
-            RequestBuilder { query: String::new()  }
-        }
-
-
-    }
-
-
-    pub struct Handler {
-        request: Request2,
-        response: Option<Response2>,
-        sender: ResultSender,
-        //timeout: u64,
-        //user_agent: String,
-    }
-
-    impl Handler {
-        fn read(&self) -> Next {
-            Next::read().timeout(Duration::from_secs(1000))
-        }
-
-        fn return_response(&self) -> Next {
-            self.send_result();
-            Next::end()
-        }
-
-        fn send_result(&self) {
-            self.sender.send((self.request.clone(), self.response.clone())).unwrap();
+            RequestBuilder { query: String::new() }
         }
     }
 
-    pub type ResultSender = mpsc::Sender<(Request2, Option<Response2>)>;
-
-    impl hyper::client::Handler<HttpStream> for Handler {
-        fn on_request(&mut self, req: &mut HyperRequest) -> Next {
-            let mut headers = req.headers_mut();
-            headers.set(Connection::close());
-            //headers.set(UserAgent(self.user_agent.clone()));
-            self.read()
-        }
-
-        fn on_request_writable(&mut self, _encoder: &mut Encoder<HttpStream>) -> Next {
-            self.read()
-        }
-
-        fn on_response(&mut self, response: HyperResponse) -> Next {
-            let status = response.status();
-            let headers = response.headers();
-            //debug!("Got {} for {}", status, self.request.url);
-            self.response = Some(Response2 {
-                status: status.clone(),
-                headers: headers.clone(),
-                body: None
-            });
-            match status {
-                &StatusCode::Ok => {
-                    //if is_html(headers) {
-                        self.read()
-                    //} else {
-                    //    self.return_response()
-                    //}
-                },
-                _ => self.return_response()
-            }
-        }
-
-        fn on_response_readable(&mut self, decoder: &mut Decoder<HttpStream>) -> Next {
-            let mut read_result = None;
-            if let Some(ref mut response) = self.response {
-                if response.body.is_none() {
-                    response.body = Some(Vec::new());
-                }
-                if let Some(ref mut body) = response.body {
-                    read_result = Some(io::copy(decoder, body));
-                }
-            }
-            if let Some(read_result) = read_result {
-                match read_result {
-                    Ok(0) => self.return_response(),
-                    Ok(_) => self.read(),
-                    Err(e) => match e.kind() {
-                        io::ErrorKind::WouldBlock => Next::read(),
-                        _ => {
-                            //info!("Response read error for {}: {}", self.request.url, e);
-                            self.return_response()
-                        }
-                    }
-                }
-            } else {
-                panic!();
-            }
-
-        }
-
-        fn on_error(&mut self, err: hyper::Error) -> Next {
-            //info!("Http error for {}: {}", self.request.url, err);
-            self.send_result();
-            Next::remove()
-        }
-    }
-
-    #[derive(Debug)]
-    struct Dump(Sender<()>);
-
-    impl Drop for Dump {
-        fn drop(&mut self) {
-            let _ = self.0.send(());
-        }
-    }
-
-    fn read() -> Next {
-        Next::read().timeout(Duration::from_secs(10))
-    }
-
-
-    #[derive(Debug, Clone, PartialEq)]
-    pub struct Request2 {
-        pub url: Url
-    }
-
-    impl Request2 {
-        pub fn new(url: Url) -> Self {
-            Request2 { url: url }
-        }
-
-        pub fn from_str(url: &str) -> Self {
-            Request2::new(url.parse().unwrap())
-        }
-
-
-    }
-
-    #[derive(Debug, Clone)]
-    pub struct Response2 {
-        pub status: StatusCode,
-        pub headers: Headers,
-        pub body: Option<Vec<u8>>
-    }
 
 
 }
