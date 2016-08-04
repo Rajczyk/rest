@@ -71,6 +71,10 @@ impl EndpointBuilder
         self
     }
 
+    pub fn add_header(&mut self, header: &str, value: &str) -> &mut EndpointBuilder {
+        self
+    }
+
     pub fn build(&self) -> Endpoint {
         Endpoint::new(self)
     }
@@ -101,8 +105,15 @@ impl Client {
 }
 
 impl RequestBuilder {
-    pub fn query(&mut self, query: &str) -> &mut RequestBuilder {
-        self.query.push_str(query);
+    pub fn path(&mut self, path: &str) -> &mut RequestBuilder {
+        self
+    }
+
+    pub fn add_urlsegment(&mut self, urlsegment: &str, value: &str) -> &mut RequestBuilder {
+        self
+    }
+
+    pub fn add_parameter(&mut self, parameter: &str, value: &str) -> &mut RequestBuilder {
         self
     }
 
@@ -117,6 +128,22 @@ impl Request {
     }
 
     pub fn get() -> RequestBuilder {
+        RequestBuilder { query: String::new() }
+    }
+
+    pub fn post() -> RequestBuilder {
+        RequestBuilder { query: String::new() }
+    }
+
+    pub fn put() -> RequestBuilder {
+        RequestBuilder { query: String::new() }
+    }
+
+    pub fn patch() -> RequestBuilder {
+        RequestBuilder { query: String::new() }
+    }
+
+    pub fn delete() -> RequestBuilder {
         RequestBuilder { query: String::new() }
     }
 }
