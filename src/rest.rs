@@ -16,6 +16,7 @@ pub enum Error {
     HttpIoError(IoError)
 }
 
+
 pub struct RequestBuilder {
     path: String,
     urlsegment: HashMap<String,String>,
@@ -35,9 +36,9 @@ pub struct EndpointBuilder {
 }
 
 pub struct Endpoint {
+    inner: http::Endpoint,
     url: String,
-    timeout: Duration,
-    header: HashMap<String,String>
+    header: HashMap<String,String>,
 }
 
 pub struct Client {
@@ -50,15 +51,6 @@ impl Endpoint {
             url: String::new(),
             timeout: Duration::from_secs(10),
             header: HashMap::new()}
-    }
-
-    fn new(builder: &EndpointBuilder) -> Endpoint
-    {
-        Endpoint {
-            url: builder.url.to_owned(),
-            timeout: builder.timeout,
-            header: builder.header.clone()
-        }
     }
 }
 
@@ -80,14 +72,17 @@ impl EndpointBuilder
     }
 
     pub fn build(&self) -> Endpoint {
-        Endpoint::new(self)
+        Endpoint {
+            inner: http::Endpoint::new(self.timeout),
+            url: self.url.to_owned(),
+            header: self.header.clone(),
+        }
     }
 }
 
 impl Client {
     pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
-        Ok(http::Client::new()
-            .request(&endpoint.url))
+        Ok(http::Client::request(endpoint.inner, &endpoint.url))
     }
 }
 

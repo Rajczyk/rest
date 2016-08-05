@@ -2,6 +2,7 @@
 use std::io;
 use std::sync::mpsc;
 use std::time::Duration;
+use std::collections::HashMap;
 
 use hyper::client::{Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
 use hyper::header::{Connection, Headers, UserAgent};
@@ -59,23 +60,30 @@ impl Handler {
     }
 }
 
-pub struct Client
-{
+pub struct Client {  }
 
+pub struct Endpoint
+{
+    client: hyper::Client<Handler>,
+    header: HashMap<String,String>
+}
+
+impl Endpoint {
+    pub fn new(timeout: Duration) -> Endpoint {
+        Endpoint {
+            client: hyper::Client::<Handler>::configure()
+                  .max_sockets(128 as usize)
+                  .connect_timeout(timeout)
+                  .build().expect("Failed to create a Client"),
+            header: HashMap::new()
+        }
+    }
 }
 
 impl Client {
-
-    pub fn new() -> Client {
-        Client {}
-    }
-
-    pub fn request(&self, url: &str) -> String
+    pub fn request(endpoint: Endpoint, url: &str) -> String
     {
         let mut url = Url::parse(url).unwrap();
-
-        let client = hyper::Client::new().unwrap();
-        //client.connect_timeout(Duration::from_secs(5));
 
         let (tx, rx) = mpsc::channel();
 
@@ -93,13 +101,13 @@ impl Client {
                         Chrome/43.0.2357.130 Safari/537.36".to_owned(),
         };
 
-        let r  = client.request(url, handler);
+        let r  = endpoint.client.request(url, handler);
         let (re, res) = rx.recv().unwrap();
-
-        client.close();
+        endpoint.client.close();
 
         let v = res.unwrap().body.unwrap();
         let body_string = String::from_utf8(v).unwrap();
+        println!("{}", body_string);
 
         body_string
     }
