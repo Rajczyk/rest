@@ -73,6 +73,14 @@ impl Client {
     pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
         Ok(http::Client::request(endpoint.inner, &endpoint.url))
     }
+
+    fn validate() -> Result<String, Error> {
+        Ok(String::new())
+    }
+
+    fn payload() -> String {
+        String::new()
+    }
 }
 
 impl RequestBuilder {
@@ -82,10 +90,12 @@ impl RequestBuilder {
     }
 
     pub fn add_urlsegment(&mut self, urlsegment: &str, value: &str) -> &mut RequestBuilder {
+        self.urlsegment.entry(urlsegment.to_string()).or_insert(value.to_string());
         self
     }
 
     pub fn add_parameter(&mut self, parameter: &str, value: &str) -> &mut RequestBuilder {
+        self.parameter.entry(parameter.to_string()).or_insert(value.to_string());
         self
     }
 

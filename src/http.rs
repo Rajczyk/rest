@@ -1,4 +1,3 @@
-
 use std::io;
 use std::sync::mpsc;
 use std::time::Duration;
@@ -11,7 +10,6 @@ use hyper::status::StatusCode;
 use hyper;
 
 use url::Url;
-
 
 pub type ResultSender = mpsc::Sender<(Request, Option<Response>)>;
 
@@ -26,7 +24,6 @@ pub struct Handler {
     request: Request,
     response: Option<Response>,
     sender: ResultSender,
-    //timeout: u64,
     user_agent: String,
 }
 
@@ -95,7 +92,6 @@ impl Client {
             request: req2,
             response: None,
             sender: tx,
-            //timeout: timeout,
             user_agent: "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 \
                         (KHTML, like Gecko) Ubuntu Chromium/43.0.2357.130 \
                         Chrome/43.0.2357.130 Safari/537.36".to_owned(),
