@@ -1,21 +1,10 @@
+use error::Error;
 use http;
 use serializer;
 
 use std::time::Duration;
 use std::collections::BinaryHeap;
 use std::collections::HashMap;
-
-use std::io::Error as IoError;
-use hyper::Error as HttpError;
-use url::ParseError as UrlParseError;
-
-#[derive(Debug)]
-pub enum Error {
-    UrlParseError(UrlParseError),
-    HttpRequestError(HttpError),
-    HttpIoError(IoError)
-}
-
 
 pub struct RequestBuilder {
     path: String,

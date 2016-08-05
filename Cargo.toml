@@ -12,5 +12,6 @@ log = "*"
 url =  "*"
 time =  "*"
 regex = "*"
+quick-error = "*"
 hyper = { git = "https://github.com/hyperium/hyper" }
 serde_json = { git = "https://github.com/serde-rs/json.git" }
