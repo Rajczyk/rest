@@ -22,6 +22,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap(), true);
     }
 
     #[test]
@@ -37,6 +38,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap().is_empty(), false);
     }
 
     #[test]
@@ -51,6 +53,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap().is_empty(), false);
     }
 
     #[test]
@@ -68,6 +71,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap().is_empty(), false);
     }
 
     #[test]
@@ -85,6 +89,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap().is_empty(), false);
     }
 
     #[test]
@@ -101,6 +106,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        //assert!(response.unwrap().is_empty(), false);
     }
 
     #[test]
@@ -116,5 +122,6 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+
     }
 }

@@ -1,13 +1,11 @@
 
 use std::io;
-use std::sync::mpsc::{Sender};
 use std::sync::mpsc;
 use std::time::Duration;
 
-use hyper::client::{Client as HyperClient, Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
+use hyper::client::{Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
 use hyper::header::{Connection, Headers, UserAgent};
 use hyper::{Decoder, Encoder, Next};
-use hyper::Method::{Get};
 use hyper::status::StatusCode;
 use hyper;
 
@@ -28,7 +26,7 @@ pub struct Handler {
     response: Option<Response>,
     sender: ResultSender,
     //timeout: u64,
-    //user_agent: String,
+    user_agent: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -74,12 +72,12 @@ impl Client {
 
     pub fn request(&self, url: &str) -> String
     {
-        println!("hyper code");
-        let mut url = Url::parse("http://jsonplaceholder.typicode.com/posts/1").unwrap();
+        let mut url = Url::parse(url).unwrap();
 
         let client = hyper::Client::new().unwrap();
-        let (tx, rx) = mpsc::channel();
+        //client.connect_timeout(Duration::from_secs(5));
 
+        let (tx, rx) = mpsc::channel();
 
         let req2 = Request {
             url : url.clone()
@@ -90,34 +88,28 @@ impl Client {
             response: None,
             sender: tx,
             //timeout: timeout,
-            //user_agent: user_agent.to_owned(),
+            user_agent: "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 \
+                        (KHTML, like Gecko) Ubuntu Chromium/43.0.2357.130 \
+                        Chrome/43.0.2357.130 Safari/537.36".to_owned(),
         };
 
         let r  = client.request(url, handler);
-
-        println!("Waiting for response");
         let (re, res) = rx.recv().unwrap();
-        println!("Got for response");
 
         client.close();
 
-
         let v = res.unwrap().body.unwrap();
+        let body_string = String::from_utf8(v).unwrap();
 
-        println!("Printing Response Next:");
-        println!("{}", String::from_utf8(v).unwrap());
-        //println!("Headers:\n{}", handler.response.headers());
-
-        String::new()
-
+        body_string
     }
 }
 
 impl hyper::client::Handler<HttpStream> for Handler {
     fn on_request(&mut self, req: &mut HyperRequest) -> Next {
-        let mut headers = req.headers_mut();
-        headers.set(Connection::close());
-        //headers.set(UserAgent(self.user_agent.clone()));
+        req.set_method(hyper::Method::Get);
+        req.headers_mut().set(Connection::close());
+        req.headers_mut().set(UserAgent(self.user_agent.clone()));
         self.read()
     }
 

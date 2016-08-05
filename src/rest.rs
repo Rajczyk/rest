@@ -16,33 +16,28 @@ pub enum Error {
     HttpIoError(IoError)
 }
 
-//pub struct Response {
-//    code: u16,
-//   status: StatusCode,
-//   headers: Headers,
-//   pub body: String,
-// }
-
-pub enum Method {
-    Get,
-    Post,
-    Put
-}
-
 pub struct RequestBuilder {
-    query: String
+    path: String,
+    urlsegment: HashMap<String,String>,
+    parameter: HashMap<String,String>
 }
 
 pub struct Request {
-
+    path: String,
+    urlsegment: HashMap<String,String>,
+    parameter: HashMap<String,String>
 }
 
 pub struct EndpointBuilder {
     url: String,
+    timeout: Duration,
+    header: HashMap<String,String>
 }
 
 pub struct Endpoint {
-    endpoint: EndpointBuilder,
+    url: String,
+    timeout: Duration,
+    header: HashMap<String,String>
 }
 
 pub struct Client {
@@ -51,12 +46,19 @@ pub struct Client {
 
 impl Endpoint {
     pub fn configure() -> EndpointBuilder {
-        EndpointBuilder{ url: String::new() }
+        EndpointBuilder {
+            url: String::new(),
+            timeout: Duration::from_secs(10),
+            header: HashMap::new()}
     }
 
     fn new(builder: &EndpointBuilder) -> Endpoint
     {
-        Endpoint { endpoint: builder.to_owned()}
+        Endpoint {
+            url: builder.url.to_owned(),
+            timeout: builder.timeout,
+            header: builder.header.clone()
+        }
     }
 }
 
@@ -68,10 +70,12 @@ impl EndpointBuilder
     }
 
     pub fn timeout(&mut self, timeout: Duration) -> &mut EndpointBuilder {
+        self.timeout = timeout;
         self
     }
 
     pub fn add_header(&mut self, header: &str, value: &str) -> &mut EndpointBuilder {
+        self.header.entry(header.to_string()).or_insert(value.to_string());
         self
     }
 
@@ -80,32 +84,16 @@ impl EndpointBuilder
     }
 }
 
-impl Clone for EndpointBuilder {
-    fn clone(&self) -> Self {
-        EndpointBuilder{ url: self.url.to_owned() }
-    }
-}
-
 impl Client {
     pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
-
-        let http_client = http::Client::new();;
-
-
-        http_client.request("http://jsonplaceholder.typicode.com/posts/1");
-
-        Ok(String::new())
-        //Ok(Response {
-        //   code: 1,
-        //    status: StatusCode::Accepted,
-        //    headers: Headers::default(),
-        //    body: "".to_string()
-        //})
+        Ok(http::Client::new()
+            .request(&endpoint.url))
     }
 }
 
 impl RequestBuilder {
     pub fn path(&mut self, path: &str) -> &mut RequestBuilder {
+        self.path.push_str(path);
         self
     }
 
@@ -124,26 +112,50 @@ impl RequestBuilder {
 
 impl Request {
     fn new() -> Request {
-        Request {}
+        Request {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 
     pub fn get() -> RequestBuilder {
-        RequestBuilder { query: String::new() }
+        RequestBuilder {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 
     pub fn post() -> RequestBuilder {
-        RequestBuilder { query: String::new() }
+        RequestBuilder {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 
     pub fn put() -> RequestBuilder {
-        RequestBuilder { query: String::new() }
+        RequestBuilder {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 
     pub fn patch() -> RequestBuilder {
-        RequestBuilder { query: String::new() }
+        RequestBuilder {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 
     pub fn delete() -> RequestBuilder {
-        RequestBuilder { query: String::new() }
+        RequestBuilder {
+            path: String::new(),
+            urlsegment: HashMap::new(),
+            parameter: HashMap::new()
+        }
     }
 }
