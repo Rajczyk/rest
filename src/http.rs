@@ -45,6 +45,18 @@ pub struct Request {
      body: Option<String>
 }
 
+impl Method {
+    fn to_hyper(&self) -> hyper::Method {
+        match *self {
+            Method::Get  => hyper::Method::Get,
+            Method::Post => hyper::Method::Post,
+            Method::Patch => hyper::Method::Patch,
+            Method::Put => hyper::Method::Put,
+            Method::Delete => hyper::Method::Delete
+        }
+    }
+}
+
 impl Request {
     pub fn new(method: Method, route: Option<String>, body: Option<String>) -> Self {
         Request {
@@ -126,7 +138,7 @@ impl Client {
 
 impl hyper::client::Handler<HttpStream> for Handler {
     fn on_request(&mut self, req: &mut HyperRequest) -> Next {
-        req.set_method(hyper::Method::Get);
+        req.set_method(self.request.method.to_hyper());
         req.headers_mut().set(Connection::close());
         req.headers_mut().set(UserAgent(self.user_agent.clone()));
         self.read()
