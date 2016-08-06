@@ -22,6 +22,7 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
+        println!("{}",response.unwrap());
         //assert!(response.unwrap(), true);
     }
 

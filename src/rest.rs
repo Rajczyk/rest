@@ -13,9 +13,7 @@ pub struct EndpointBuilder {
 }
 
 pub struct Endpoint {
-    inner: http::Endpoint,
-    url: String,
-    header: HashMap<String,String>,
+    inner: http::Endpoint
 }
 
 pub struct GetBuilder {
@@ -47,8 +45,8 @@ pub struct DeleteBuilder {
 
 pub struct Request {
     method: http::Method,
-    route: String,
-    body: String
+    route: Option<String>,
+    body: Option<String>
 }
 
 
@@ -84,24 +82,15 @@ impl EndpointBuilder
 
     pub fn build(&self) -> Endpoint {
         Endpoint {
-            inner: http::Endpoint::new(self.timeout),
-            url: self.url.to_owned(),
-            header: self.header.clone(),
+            inner: http::Endpoint::new(self.url.to_owned(), self.timeout, self.header.clone()),
         }
     }
 }
 
 impl Client {
     pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
-        Ok(http::Client::request(endpoint.inner, &endpoint.url))
-    }
 
-    fn validate() -> Result<String, Error> {
-        Ok(String::new())
-    }
-
-    fn payload() -> String {
-        String::new()
+        Ok(http::Client::request(endpoint.inner, request))
     }
 }
 
@@ -131,7 +120,7 @@ impl GetBuilder {
         self
     }
 
-    fn parse_url(&mut self) -> String {
+    fn parse_route(&self) -> String {
         let mut route = self.path.to_owned();
         for (key, val) in self.urlsegment.iter() {
             let format_key = String::new() + "{" + key + "}";
@@ -146,8 +135,8 @@ impl GetBuilder {
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Get,
-            route: String::new(),
-            body: String::new()
+            route: Some(self.parse_route()),
+            body: None
         }
     }
 }
@@ -174,8 +163,8 @@ impl PostBuilder {
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Post,
-            route: String::new(),
-            body: String::new()
+            route: Some(String::new()),
+            body: Some(String::new())
         }
     }
 }
@@ -202,8 +191,8 @@ impl PutBuilder {
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Put,
-            route: String::new(),
-            body: String::new()
+            route: Some(String::new()),
+            body: Some(String::new())
         }
     }
 }
@@ -236,8 +225,8 @@ impl PatchBuilder {
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Patch,
-            route: String::new(),
-            body: String::new()
+            route: Some(String::new()),
+            body: Some(String::new())
         }
     }
 }
@@ -264,8 +253,8 @@ impl DeleteBuilder {
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Delete,
-            route: String::new(),
-            body: String::new()
+            route: Some(String::new()),
+            body: Some(String::new())
         }
     }
 }
@@ -324,5 +313,5 @@ fn get_builder_url_segment() {
     assert_eq!(builder.urlsegment.contains_key("userId"), true);
     assert_eq!(builder.urlsegment.contains_key("commentId"), true);
 
-    assert_eq!(&builder.parse_url(), "users/1/comments/7");
+    assert_eq!(&builder.parse_route(), "users/1/comments/7");
 }

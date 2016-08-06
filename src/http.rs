@@ -12,6 +12,8 @@ use hyper;
 
 use url::Url;
 
+use rest;
+
 pub type ResultSender = mpsc::Sender<(Request, Option<Response>)>;
 
 pub enum Method
@@ -71,26 +73,29 @@ pub struct Client {  }
 
 pub struct Endpoint
 {
+    url: String,
     config: HyperConfig<HttpConnector>,
     header: HashMap<String,String>
 }
 
 impl Endpoint {
-    pub fn new(timeout: Duration) -> Endpoint {
+    pub fn new(url: String, timeout: Duration, header: HashMap<String,String>) -> Endpoint {
         Endpoint {
+            url: url,
             config: HyperConfig::default()
                 .connect_timeout(timeout),
-            header: HashMap::new()
+            header: header
         }
     }
 }
 
 impl Client {
-    pub fn request(endpoint: Endpoint, url: &str) -> String
+    pub fn request(endpoint: Endpoint, request: rest::Request) -> String
     {
         let client = endpoint.config.build().unwrap();
 
-        let mut url = Url::parse(url).unwrap();
+        let s = endpoint.url + "/" + "posts/1";
+        let mut url = Url::parse(&s).unwrap();
 
         let (tx, rx) = mpsc::channel();
 
