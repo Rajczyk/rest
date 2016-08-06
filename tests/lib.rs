@@ -22,8 +22,18 @@ mod tests {
             .build();
 
         let response = rest::Client::execute(api, request);
-        println!("{}",response.unwrap());
-        //assert!(response.unwrap(), true);
+        let result = response.unwrap();
+        assert_eq!(result.is_empty(), false);
+
+        let expected_result =
+r#"{
+  "userId": 1,
+  "id": 1,
+  "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+  "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+}"#.to_string();
+
+        assert_eq!(&result, &expected_result);
     }
 
     #[test]
