@@ -3,7 +3,8 @@ use std::sync::mpsc;
 use std::time::Duration;
 use std::collections::HashMap;
 
-use hyper::client::{Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
+use hyper::client::{Request as HyperRequest, Response as HyperResponse,
+    DefaultTransport as HttpStream, DefaultConnector as HttpConnector, Config as HyperConfig};
 use hyper::header::{Connection, Headers, UserAgent};
 use hyper::{Decoder, Encoder, Next};
 use hyper::status::StatusCode;
@@ -12,6 +13,15 @@ use hyper;
 use url::Url;
 
 pub type ResultSender = mpsc::Sender<(Request, Option<Response>)>;
+
+pub enum Method
+{
+    Get,
+    Post,
+    Patch,
+    Put,
+    Delete
+}
 
 #[derive(Debug, Clone)]
 pub struct Response {
@@ -61,17 +71,15 @@ pub struct Client {  }
 
 pub struct Endpoint
 {
-    client: hyper::Client<Handler>,
+    config: HyperConfig<HttpConnector>,
     header: HashMap<String,String>
 }
 
 impl Endpoint {
     pub fn new(timeout: Duration) -> Endpoint {
         Endpoint {
-            client: hyper::Client::<Handler>::configure()
-                  .max_sockets(128 as usize)
-                  .connect_timeout(timeout)
-                  .build().expect("Failed to create a Client"),
+            config: HyperConfig::default()
+                .connect_timeout(timeout),
             header: HashMap::new()
         }
     }
@@ -80,6 +88,8 @@ impl Endpoint {
 impl Client {
     pub fn request(endpoint: Endpoint, url: &str) -> String
     {
+        let client = endpoint.config.build().unwrap();
+
         let mut url = Url::parse(url).unwrap();
 
         let (tx, rx) = mpsc::channel();
@@ -97,9 +107,9 @@ impl Client {
                         Chrome/43.0.2357.130 Safari/537.36".to_owned(),
         };
 
-        let r  = endpoint.client.request(url, handler);
+        let r  = client.request(url, handler);
         let (re, res) = rx.recv().unwrap();
-        endpoint.client.close();
+        client.close();
 
         let v = res.unwrap().body.unwrap();
         let body_string = String::from_utf8(v).unwrap();
