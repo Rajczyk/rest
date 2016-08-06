@@ -3,7 +3,6 @@ use http;
 use serializer;
 
 use std::time::Duration;
-use std::collections::BinaryHeap;
 use std::collections::HashMap;
 
 pub struct EndpointBuilder {
@@ -44,11 +43,8 @@ pub struct DeleteBuilder {
 }
 
 pub struct Request {
-    method: http::Method,
-    route: Option<String>,
-    body: Option<String>
+    inner: http::Request
 }
-
 
 pub struct Client {
 
@@ -89,8 +85,7 @@ impl EndpointBuilder
 
 impl Client {
     pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
-
-        Ok(http::Client::request(endpoint.inner, request))
+        Ok(http::Client::request(endpoint.inner, request.inner))
     }
 }
 
@@ -134,9 +129,7 @@ impl GetBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            method: http::Method::Get,
-            route: Some(self.parse_route()),
-            body: None
+            inner: http::Request::new(http::Method::Get, Some(self.parse_route()), None)
         }
     }
 }
@@ -162,9 +155,7 @@ impl PostBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            method: http::Method::Post,
-            route: Some(String::new()),
-            body: Some(String::new())
+            inner: http::Request::new(http::Method::Post, None, None)
         }
     }
 }
@@ -190,9 +181,7 @@ impl PutBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            method: http::Method::Put,
-            route: Some(String::new()),
-            body: Some(String::new())
+            inner: http::Request::new(http::Method::Put, None, None)
         }
     }
 }
@@ -224,9 +213,7 @@ impl PatchBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            method: http::Method::Patch,
-            route: Some(String::new()),
-            body: Some(String::new())
+            inner: http::Request::new(http::Method::Patch, None, None)
         }
     }
 }
@@ -252,9 +239,7 @@ impl DeleteBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            method: http::Method::Delete,
-            route: Some(String::new()),
-            body: Some(String::new())
+            inner: http::Request::new(http::Method::Delete, None, None)
         }
     }
 }

@@ -12,10 +12,9 @@ use hyper;
 
 use url::Url;
 
-use rest;
-
 pub type ResultSender = mpsc::Sender<(Request, Option<Response>)>;
 
+#[derive(Debug, Clone)]
 pub enum Method
 {
     Get,
@@ -39,18 +38,20 @@ pub struct Handler {
     user_agent: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct Request {
-    pub url: Url
+     method: Method,
+     route: Option<String>,
+     body: Option<String>
 }
 
 impl Request {
-    pub fn new(url: Url) -> Self {
-        Request { url: url }
-    }
-
-    pub fn from_str(url: &str) -> Self {
-        Request::new(url.parse().unwrap())
+    pub fn new(method: Method, route: Option<String>, body: Option<String>) -> Self {
+        Request {
+            method: method,
+            route: route,
+            body: body
+        }
     }
 }
 
@@ -90,21 +91,14 @@ impl Endpoint {
 }
 
 impl Client {
-    pub fn request(endpoint: Endpoint, request: rest::Request) -> String
+    pub fn request(endpoint: Endpoint, request: Request) -> String
     {
         let client = endpoint.config.build().unwrap();
 
-        let s = endpoint.url + "/" + "posts/1";
-        let mut url = Url::parse(&s).unwrap();
-
         let (tx, rx) = mpsc::channel();
 
-        let req2 = Request {
-            url : url.clone()
-        };
-
         let handler = Handler {
-            request: req2,
+            request: request.to_owned(),
             response: None,
             sender: tx,
             user_agent: "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 \
@@ -112,13 +106,19 @@ impl Client {
                         Chrome/43.0.2357.130 Safari/537.36".to_owned(),
         };
 
-        let r  = client.request(url, handler);
-        let (re, res) = rx.recv().unwrap();
+
+        let s = endpoint.url + "/" + &request.route.unwrap();
+        let url = Url::parse(&s).unwrap();
+
+
+
+        client.request(url, handler);
+
+        let (_, res) = rx.recv().unwrap();
         client.close();
 
         let v = res.unwrap().body.unwrap();
         let body_string = String::from_utf8(v).unwrap();
-        println!("{}", body_string);
 
         body_string
     }
@@ -139,7 +139,7 @@ impl hyper::client::Handler<HttpStream> for Handler {
     fn on_response(&mut self, response: HyperResponse) -> Next {
         let status = response.status();
         let headers = response.headers();
-        debug!("Got {} for {}", status, self.request.url);
+        //debug!("Got {} for {}", status, &self.request.route.unwrap());
         self.response = Some(Response {
             status: status.clone(),
             headers: headers.clone(),
