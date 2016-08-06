@@ -117,13 +117,23 @@ impl GetBuilder {
 
     fn parse_route(&self) -> String {
         let mut route = self.path.to_owned();
-        for (key, val) in self.urlsegment.iter() {
-            let format_key = String::new() + "{" + key + "}";
-            if self.path.contains(&format_key) {
-                route = route.replace(&format_key, val);
+
+        if self.urlsegment.len() >= 1 {
+            for (key, val) in self.urlsegment.iter() {
+                let format_key = String::new() + "{" + key + "}";
+                if self.path.contains(&format_key) {
+                    route = route.replace(&format_key, val);
+                }
             }
         }
 
+        if self.parameter.len() >= 1 {
+            route.push_str("?");
+            for(key, val) in self.parameter.iter() {
+                let format_query = String::new() + key + "=" + val;
+                route.push_str(&format_query);
+            }
+        }
         route
     }
 
@@ -299,4 +309,36 @@ fn get_builder_url_segment() {
     assert_eq!(builder.urlsegment.contains_key("commentId"), true);
 
     assert_eq!(&builder.parse_route(), "users/1/comments/7");
+}
+
+#[test]
+fn get_builder_parameter() {
+    let mut builder = Request::get();
+    builder.path("posts");
+
+    //Check add parameter
+    builder.add_parameter("userId", "1");
+
+    assert_eq!(builder.parameter.len(), 1);
+    assert_eq!(builder.parameter.contains_key("userId"), true);
+
+    assert_eq!(&builder.parse_route(), "posts?userId=1");
+}
+
+#[test]
+fn get_builder_url_segment_paramter() {
+    let mut builder = Request::get();
+    builder.path("posts/{postId}");
+
+    //Check add url segment & add parameter combo
+    builder.add_urlsegment("postId", "1");
+    builder.add_parameter("userId", "1");
+
+    assert_eq!(builder.urlsegment.len(), 1);
+    assert_eq!(builder.urlsegment.contains_key("postId"), true);
+
+    assert_eq!(builder.parameter.len(), 1);
+    assert_eq!(builder.parameter.contains_key("userId"), true);
+
+    assert_eq!(&builder.parse_route(), "posts/1?userId=1");
 }
