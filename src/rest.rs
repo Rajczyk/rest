@@ -131,6 +131,18 @@ impl GetBuilder {
         self
     }
 
+    fn parse_url(&mut self) -> String {
+        let mut route = self.path.to_owned();
+        for (key, val) in self.urlsegment.iter() {
+            let format_key = String::new() + "{" + key + "}";
+            if self.path.contains(&format_key) {
+                route = route.replace(&format_key, val);
+            }
+        }
+
+        route
+    }
+
     pub fn build(&self) -> Request {
         Request {
             method: http::Method::Get,
@@ -283,7 +295,7 @@ impl Request {
 
 #[test]
 fn get_builder_path() {
-    let mut builder = GetBuilder::new();
+    let mut builder = Request::get();
 
     //Check we can set path
     builder.path("users/{id}");
@@ -292,5 +304,25 @@ fn get_builder_path() {
     //This should over write the existing path
     builder.path("posts/{id}");
     assert_eq!(builder.path, "posts/{id}");
+}
 
+#[test]
+fn get_builder_url_segment() {
+    let mut builder = Request::get();
+    builder.path("users/{userId}/comments/{commentId}");
+
+    //Check add url segment
+    builder.add_urlsegment("userId", "1");
+
+    assert_eq!(builder.urlsegment.len(), 1);
+    assert_eq!(builder.urlsegment.contains_key("userId"), true);
+
+    //Check add url segment
+    builder.add_urlsegment("commentId", "7");
+
+    assert_eq!(builder.urlsegment.len(), 2);
+    assert_eq!(builder.urlsegment.contains_key("userId"), true);
+    assert_eq!(builder.urlsegment.contains_key("commentId"), true);
+
+    assert_eq!(&builder.parse_url(), "users/1/comments/7");
 }
