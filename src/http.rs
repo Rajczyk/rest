@@ -1,4 +1,5 @@
 use std::io;
+use std::io::Write;
 use std::sync::mpsc;
 use std::time::Duration;
 use std::collections::HashMap;
@@ -96,7 +97,9 @@ impl Endpoint {
         Endpoint {
             url: url,
             config: HyperConfig::default()
-                .connect_timeout(timeout),
+                .connect_timeout(timeout)
+                .keep_alive(true)
+                .keep_alive_timeout(Some(timeout)),
             header: header
         }
     }
@@ -113,15 +116,20 @@ impl Client {
             request: request.to_owned(),
             response: None,
             sender: tx,
-            user_agent: "Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.36 \
-                        (KHTML, like Gecko) Ubuntu Chromium/43.0.2357.130 \
-                        Chrome/43.0.2357.130 Safari/537.36".to_owned(),
+            user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) \
+            AppleWebKit/537.36 (KHTML, like Gecko) \
+            Chrome/52.0.2743.116 Safari/537.36".to_owned(),
         };
 
+        let route =
+        match request.route.as_ref() {
+            Some(x) =>  String::new() + "/" + x,
+            None => "".to_string()
+        };
 
-        let s = endpoint.url + "/" + &request.route.unwrap();
+        let s = endpoint.url + &route;
+
         let url = Url::parse(&s).unwrap();
-
 
 
         client.request(url, handler);
@@ -129,6 +137,7 @@ impl Client {
         let (_, res) = rx.recv().unwrap();
         client.close();
 
+        println!("at response");
         let v = res.unwrap().body.unwrap();
         let body_string = String::from_utf8(v).unwrap();
 
@@ -141,10 +150,24 @@ impl hyper::client::Handler<HttpStream> for Handler {
         req.set_method(self.request.method.to_hyper());
         req.headers_mut().set(Connection::close());
         req.headers_mut().set(UserAgent(self.user_agent.clone()));
-        self.read()
+        if self.request.body.is_some() {
+            Next::write()
+        } else {
+            self.read()
+        }
     }
 
     fn on_request_writable(&mut self, _encoder: &mut Encoder<HttpStream>) -> Next {
+        let n = _encoder.write(b"{title: 'foo', body: 'bar', userId: 1}").unwrap();
+        if let Some(ref mut body) = self.request.body {
+
+            //*body = &body[n..];
+
+            //if !body.is_empty() {
+            //    return Next::write()
+            //}
+        }
+        _encoder.close();
         self.read()
     }
 
@@ -159,13 +182,21 @@ impl hyper::client::Handler<HttpStream> for Handler {
         });
         match status {
             &StatusCode::Ok => {
+                println!("reading");
                 //if is_html(headers) {
                 self.read()
                 //} else {
                 //    self.return_response()
                 //}
             },
-            _ => self.return_response()
+            &StatusCode::Created => {
+                println!("reading");
+                self.read()
+            }
+            _ => {
+                println!("not reading");
+                self.return_response()
+            }
         }
     }
 
@@ -198,6 +229,7 @@ impl hyper::client::Handler<HttpStream> for Handler {
     }
 
     fn on_error(&mut self, err: hyper::Error) -> Next {
+        println!("we have an error: {}", err);
         //info!("Http error for {}: {}", self.request.url, err);
         self.send_result();
         Next::remove()

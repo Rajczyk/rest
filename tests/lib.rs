@@ -148,7 +148,7 @@ r#"[
             .build();
 
         let request = rest::Request::post()
-            .path("posts")
+            .path("post")
             .add_parameter("title", "foo")
             .add_parameter("body", "bar")
             .add_parameter("userId", "1")

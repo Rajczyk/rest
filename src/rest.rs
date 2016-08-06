@@ -165,7 +165,7 @@ impl PostBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Post, None, None)
+            inner: http::Request::new(http::Method::Post, Some("posts".to_string()), Some("a body".to_string()))
         }
     }
 }
