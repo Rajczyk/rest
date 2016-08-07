@@ -89,7 +89,7 @@ pub struct Client {  }
 pub struct Endpoint
 {
     url: String,
-    config: HyperConfig<HttpConnector>,
+    timeout: Duration,
     header: HashMap<String, String>
 }
 
@@ -97,19 +97,27 @@ impl Endpoint {
     pub fn new(url: String, timeout: Duration, header: HashMap<String,String>) -> Endpoint {
         Endpoint {
             url: url,
-            config: HyperConfig::default()
-                .connect_timeout(timeout)
-                .keep_alive(true)
-                .keep_alive_timeout(Some(timeout)),
+            timeout: timeout,
             header: header
         }
+    }
+
+    fn connector(&self) -> hyper::Client<Handler> {
+        hyper::Client::<Handler>::configure()
+            .connect_timeout(Duration::from_secs(5))
+            .keep_alive(true)
+            .keep_alive_timeout(Some(Duration::from_secs(5)))
+            .build()
+            .unwrap()
     }
 }
 
 impl Client {
     pub fn request(endpoint: Endpoint, request: Request) -> String
     {
-        let client = endpoint.config.build().unwrap();
+        let client = endpoint.connector();
+
+       //Client::request(client,client);
 
         let (tx, rx) = mpsc::channel();
 
