@@ -85,11 +85,12 @@ impl Handler {
 
 pub struct Client {  }
 
+#[derive(Debug, Clone)]
 pub struct Endpoint
 {
     url: String,
     config: HyperConfig<HttpConnector>,
-    header: HashMap<String,String>
+    header: HashMap<String, String>
 }
 
 impl Endpoint {
