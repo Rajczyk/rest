@@ -1,6 +1,6 @@
 use error::Error;
 use http;
-use serializer;
+use serializer::ToJsonString;
 
 use std::time::Duration;
 use std::collections::HashMap;
@@ -163,9 +163,13 @@ impl PostBuilder {
         self
     }
 
+    fn get_body(&self) -> Option<String> {
+         Some(self.parameter.tojson())
+    }
+
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Post, Some("posts".to_string()), Some("a body".to_string()))
+            inner: http::Request::new(http::Method::Post, Some("posts".to_string()), self.get_body())
         }
     }
 }
@@ -341,4 +345,20 @@ fn get_builder_url_segment_paramter() {
     assert_eq!(builder.parameter.contains_key("userId"), true);
 
     assert_eq!(&builder.parse_route(), "posts/1?userId=1");
+}
+
+#[test]
+fn post_builder_parameter() {
+    let mut builder = Request::post();
+    builder.path("post");
+
+    //Check add parameter
+    builder.add_parameter("title", "foo");
+
+    assert_eq!(builder.parameter.len(), 1);
+    assert_eq!(builder.parameter.contains_key("title"), true);
+
+    let x = builder.get_body().unwrap();
+    println!("{}", x);
+    //assert_eq!(&builder.get_body(), "posts?userId=1");
 }

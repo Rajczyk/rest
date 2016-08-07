@@ -41,7 +41,7 @@ pub struct Handler {
 
 #[derive(Debug, Clone)]
 pub struct Request {
-     method: Method,
+     method: hyper::Method,
      route: Option<String>,
      body: Option<String>
 }
@@ -61,7 +61,7 @@ impl Method {
 impl Request {
     pub fn new(method: Method, route: Option<String>, body: Option<String>) -> Self {
         Request {
-            method: method,
+            method: method.to_hyper(),
             route: route,
             body: body
         }
@@ -147,9 +147,10 @@ impl Client {
 
 impl hyper::client::Handler<HttpStream> for Handler {
     fn on_request(&mut self, req: &mut HyperRequest) -> Next {
-        req.set_method(self.request.method.to_hyper());
+        req.set_method(self.request.method.to_owned());
         req.headers_mut().set(Connection::close());
         req.headers_mut().set(UserAgent(self.user_agent.clone()));
+        //req.headers_mut().set_raw("Content-Type","application/x-www-form-urlencoded");
         if self.request.body.is_some() {
             Next::write()
         } else {
@@ -158,17 +159,13 @@ impl hyper::client::Handler<HttpStream> for Handler {
     }
 
     fn on_request_writable(&mut self, _encoder: &mut Encoder<HttpStream>) -> Next {
-        let n = _encoder.write(b"{title: 'foo', body: 'bar', userId: 1}").unwrap();
+        println!("in on reuqest write");
         if let Some(ref mut body) = self.request.body {
-
-            //*body = &body[n..];
-
-            //if !body.is_empty() {
-            //    return Next::write()
-            //}
+            let n = _encoder.write(body.as_bytes()).unwrap();
         }
+
         _encoder.close();
-        self.read()
+        Next::read()
     }
 
     fn on_response(&mut self, response: HyperResponse) -> Next {
@@ -180,6 +177,7 @@ impl hyper::client::Handler<HttpStream> for Handler {
             headers: headers.clone(),
             body: None
         });
+        println!("{}", status.to_string());
         match status {
             &StatusCode::Ok => {
                 println!("reading");
