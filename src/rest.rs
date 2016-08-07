@@ -11,6 +11,7 @@ pub struct EndpointBuilder {
     header: HashMap<String,String>
 }
 
+#[derive(Debug, Clone)]
 pub struct Endpoint {
     inner: http::Endpoint
 }
@@ -42,6 +43,7 @@ pub struct DeleteBuilder {
     urlsegment: HashMap<String,String>
 }
 
+#[derive(Debug, Clone)]
 pub struct Request {
     inner: http::Request
 }
