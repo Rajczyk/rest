@@ -1,11 +1,9 @@
 use std::io;
-use std::io::Write;
 use std::sync::mpsc;
 use std::time::Duration;
 use std::collections::HashMap;
 
-use hyper::client::{Request as HyperRequest, Response as HyperResponse,
-    DefaultTransport as HttpStream, DefaultConnector as HttpConnector, Config as HyperConfig};
+use hyper::client::{Request as HyperRequest, Response as HyperResponse, DefaultTransport as HttpStream};
 use hyper::header::{Connection, Headers, UserAgent};
 use hyper::{Decoder, Encoder, Next};
 use hyper::status::StatusCode;
@@ -85,44 +83,45 @@ impl Handler {
 
 pub struct Client {  }
 
-#[derive(Debug, Clone)]
 pub struct Endpoint
 {
-    url: String,
-    timeout: Duration,
+    url: Url,
+    client: hyper::Client<Handler>,
     header: HashMap<String, String>
 }
 
 impl Endpoint {
     pub fn new(url: String, timeout: Duration, header: HashMap<String,String>) -> Endpoint {
         Endpoint {
-            url: url,
-            timeout: timeout,
+            url: Endpoint::url(&url),
+            client: Endpoint::connector(timeout),
             header: header
         }
     }
+    fn url (url: &String) -> Url {
+        Url::parse(url).unwrap()
+    }
 
-    fn connector(&self) -> hyper::Client<Handler> {
+    fn connector(timeout: Duration) -> hyper::Client<Handler> {
         hyper::Client::<Handler>::configure()
-            .connect_timeout(Duration::from_secs(5))
+            .connect_timeout(timeout)
             .keep_alive(true)
-            .keep_alive_timeout(Some(Duration::from_secs(5)))
+            .keep_alive_timeout(Some(timeout))
             .build()
             .unwrap()
     }
 }
 
 impl Client {
-    pub fn request(endpoint: Endpoint, request: Request) -> String
+    pub fn request(endpoint: &Endpoint, request: &Request) -> String
     {
-        let client = endpoint.connector();
-
-       //Client::request(client,client);
-
+        let req = request.clone();
+        let client = endpoint.client.clone();
+        let mut url = endpoint.url.clone();
         let (tx, rx) = mpsc::channel();
 
         let handler = Handler {
-            request: request.to_owned(),
+            request: req,
             response: None,
             sender: tx,
             user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) \
@@ -136,12 +135,8 @@ impl Client {
             None => "".to_string()
         };
 
-        let s = endpoint.url + &route;
-
-        let url = Url::parse(&s).unwrap();
-
-
-        client.request(url, handler);
+        url.set_path(&route);
+        let _ = client.request(url, handler);
 
         let (_, res) = rx.recv().unwrap();
         client.close();
@@ -170,7 +165,7 @@ impl hyper::client::Handler<HttpStream> for Handler {
     fn on_request_writable(&mut self, _encoder: &mut Encoder<HttpStream>) -> Next {
         println!("in on reuqest write");
         if let Some(ref mut body) = self.request.body {
-            let n = _encoder.write(body.as_bytes()).unwrap();
+            _encoder.write(body.as_bytes()).unwrap();
         }
 
         _encoder.close();

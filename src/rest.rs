@@ -11,7 +11,6 @@ pub struct EndpointBuilder {
     header: HashMap<String,String>
 }
 
-#[derive(Debug, Clone)]
 pub struct Endpoint {
     inner: http::Endpoint
 }
@@ -59,6 +58,13 @@ impl Endpoint {
             timeout: Duration::from_secs(10),
             header: HashMap::new()}
     }
+
+    fn new(builder: &EndpointBuilder) -> Endpoint {
+        Endpoint {
+            inner: http::Endpoint::new(builder.url.clone(), builder.timeout.clone(), builder.header.clone()),
+        }
+    }
+
 }
 
 impl EndpointBuilder
@@ -79,15 +85,13 @@ impl EndpointBuilder
     }
 
     pub fn build(&self) -> Endpoint {
-        Endpoint {
-            inner: http::Endpoint::new(self.url.to_owned(), self.timeout, self.header.clone()),
-        }
+       Endpoint::new(self)
     }
 }
 
 impl Client {
-    pub fn execute(endpoint: Endpoint, request: Request) -> Result<String, Error> {
-        Ok(http::Client::request(endpoint.inner, request.inner))
+    pub fn execute(endpoint: &Endpoint, request: &Request) -> Result<String, Error> {
+        Ok(http::Client::request(&endpoint.inner, &request.inner))
     }
 }
 

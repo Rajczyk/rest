@@ -21,7 +21,8 @@ mod tests {
             .add_urlsegment("id", "1")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
+
         let result = response.unwrap();
         assert_eq!(result.is_empty(), false);
 
@@ -48,7 +49,7 @@ r#"{
             .add_parameter("userId", "1")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         let result = response.unwrap();
         assert_eq!(result.is_empty(), false);
 
@@ -129,7 +130,7 @@ r#"[
             .path("posts")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         let result = response.unwrap();
         assert_eq!(result.is_empty(), false);
 
@@ -154,7 +155,7 @@ r#"[
             .add_parameter("userId", "1")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         println!("{}",response.unwrap());
         //assert!(response.unwrap().is_empty(), false);
     }
@@ -173,7 +174,7 @@ r#"[
             .add_parameter("userId", "1")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         println!("{}",response.unwrap());
         //assert!(response.unwrap().is_empty(), false);
     }
@@ -191,7 +192,7 @@ r#"[
             .add_parameter("title", "foo")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         println!("{}",response.unwrap());
         //assert!(response.unwrap().is_empty(), false);
     }
@@ -208,7 +209,7 @@ r#"[
             .add_urlsegment("id", "1")
             .build();
 
-        let response = rest::Client::execute(api, request);
+        let response = rest::Client::execute(&api, &request);
         println!("{}",response.unwrap());
 
     }
