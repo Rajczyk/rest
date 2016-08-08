@@ -129,14 +129,17 @@ impl Client {
             Chrome/52.0.2743.116 Safari/537.36".to_owned(),
         };
 
+        //fix this hack
         let route =
         match request.route.as_ref() {
-            Some(x) =>  String::new() + "/" + x,
+            Some(x) =>  x.to_string(),
             None => "".to_string()
         };
 
-        url.set_path(&route);
+        let temp = url.to_string() + &route;
+         url = Url::parse(&temp).unwrap();
 
+        println!("the rpute is: {}", route);
         println!("the url is: {}", url.to_string());
 
         let _ = client.request(url, handler);
