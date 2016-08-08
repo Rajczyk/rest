@@ -136,6 +136,9 @@ impl Client {
         };
 
         url.set_path(&route);
+
+        println!("the url is: {}", url.to_string());
+
         let _ = client.request(url, handler);
 
         let (_, res) = rx.recv().unwrap();
