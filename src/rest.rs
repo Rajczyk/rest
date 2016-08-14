@@ -47,6 +47,10 @@ pub struct Request {
     inner: http::Request
 }
 
+pub struct Header {
+
+}
+
 pub struct Client {
 
 }
@@ -79,6 +83,9 @@ impl EndpointBuilder
         self
     }
 
+    pub fn request_limit(&mut self, requests: i32, timeout: Duration) -> &mut EndpointBuilder {
+        self
+    }
     pub fn add_header(&mut self, header: &str, value: &str) -> &mut EndpointBuilder {
         self.header.entry(header.to_string()).or_insert(value.to_string());
         self
@@ -91,6 +98,10 @@ impl EndpointBuilder
 
 impl Client {
     pub fn execute(endpoint: &Endpoint, request: &Request) -> Result<String, Error> {
+        Ok(http::Client::request(&endpoint.inner, &request.inner))
+    }
+
+    pub fn execute_headers(endpoint: &Endpoint, request: &Request, header: &Header) -> Result<String, Error> {
         Ok(http::Client::request(&endpoint.inner, &request.inner))
     }
 }
@@ -108,6 +119,10 @@ impl GetBuilder {
     pub fn path(&mut self, path: &str) -> &mut GetBuilder {
         self.path.clear();
         self.path.push_str(path);
+        self
+    }
+
+    pub fn add_header(&mut self, header: &str, value: &str)  -> &mut GetBuilder {
         self
     }
 
@@ -164,6 +179,10 @@ impl PostBuilder {
         self
     }
 
+    pub fn add_header(&mut self, header: &str, value: &str)  -> &mut PostBuilder {
+        self
+    }
+
     pub fn add_parameter(&mut self, parameter: &str, value: &str) -> &mut PostBuilder {
         self.parameter.entry(parameter.to_string()).or_insert(value.to_string());
         self
@@ -194,6 +213,10 @@ impl PutBuilder {
         self
     }
 
+    pub fn add_header(&mut self, header: &str, value: &str)  -> &mut PutBuilder {
+        self
+    }
+
     pub fn add_parameter(&mut self, parameter: &str, value: &str) -> &mut PutBuilder {
         self.parameter.entry(parameter.to_string()).or_insert(value.to_string());
         self
@@ -218,6 +241,10 @@ impl PatchBuilder {
 
     pub fn path(&mut self, path: &str) -> &mut PatchBuilder {
         self.path.push_str(path);
+        self
+    }
+
+    pub fn add_header(&mut self, header: &str, value: &str)  -> &mut PatchBuilder {
         self
     }
 
@@ -252,6 +279,10 @@ impl DeleteBuilder {
         self
     }
 
+    pub fn add_header(&mut self, header: &str, value: &str)  -> &mut DeleteBuilder {
+        self
+    }
+
     pub fn add_urlsegment(&mut self, urlsegment: &str, value: &str) -> &mut DeleteBuilder {
         self.urlsegment.entry(urlsegment.to_string()).or_insert(value.to_string());
         self
@@ -283,6 +314,16 @@ impl Request {
 
     pub fn delete() -> DeleteBuilder {
         DeleteBuilder::new()
+    }
+}
+
+impl Header {
+    pub fn new() -> Header {
+        Header {}
+    }
+
+    pub fn add (&mut self, header: &str, value: &str)  -> &mut Header {
+        self
     }
 }
 
