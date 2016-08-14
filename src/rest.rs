@@ -54,6 +54,33 @@ pub struct Header {
 pub struct Client {
 
 }
+#[derive(Debug, Clone)]
+pub enum Method
+{
+    Get,
+    Post,
+    Patch,
+    Put,
+    Delete,
+    Options,
+    Head,
+    Trace
+}
+
+impl Method {
+    fn from_http(method: &http::Method) -> Method {
+        match *method {
+            http::Method::Get  => Method::Get,
+            http::Method::Post => Method::Post,
+            http::Method::Patch => Method::Patch,
+            http::Method::Put => Method::Put,
+            http::Method::Delete => Method::Delete,
+            http::Method::Options => Method::Options,
+            http::Method::Head => Method::Head,
+            http::Method::Trace => Method::Trace
+        }
+    }
+}
 
 impl Endpoint {
     pub fn configure() -> EndpointBuilder {
@@ -160,7 +187,7 @@ impl GetBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Get, Some(self.parse_route()), None)
+            inner: http::Request::new(http::Method::Get, Some(self.parse_route()), None),
         }
     }
 }
@@ -194,7 +221,7 @@ impl PostBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Post, Some("posts".to_string()), self.get_body())
+            inner: http::Request::new(http::Method::Post, Some("posts".to_string()), self.get_body()),
         }
     }
 }
@@ -224,7 +251,7 @@ impl PutBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Put, None, None)
+            inner: http::Request::new(http::Method::Put, None, None),
         }
     }
 }
@@ -260,7 +287,7 @@ impl PatchBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Patch, None, None)
+            inner: http::Request::new(http::Method::Patch, None, None),
         }
     }
 }
@@ -290,7 +317,7 @@ impl DeleteBuilder {
 
     pub fn build(&self) -> Request {
         Request {
-            inner: http::Request::new(http::Method::Delete, None, None)
+            inner: http::Request::new(http::Method::Delete, None, None),
         }
     }
 }
@@ -316,8 +343,12 @@ impl Request {
         DeleteBuilder::new()
     }
 
-    pub fn method(&self) -> http::Method {
-        http::Method::Get
+    pub fn method(&self) -> Method {
+        Method::from_http(&self.inner.method())
+    }
+
+    pub fn data(&self) -> String {
+        String::new()
     }
 }
 

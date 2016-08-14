@@ -20,7 +20,10 @@ pub enum Method
     Post,
     Patch,
     Put,
-    Delete
+    Delete,
+    Options,
+    Head,
+    Trace
 }
 
 #[derive(Debug, Clone)]
@@ -51,7 +54,24 @@ impl Method {
             Method::Post => hyper::Method::Post,
             Method::Patch => hyper::Method::Patch,
             Method::Put => hyper::Method::Put,
-            Method::Delete => hyper::Method::Delete
+            Method::Delete => hyper::Method::Delete,
+            Method::Options => hyper::Method::Options,
+            Method::Head => hyper::Method::Head,
+            Method::Trace => hyper::Method::Trace
+        }
+    }
+
+    fn from_hyper(method: &hyper::Method) -> Method {
+        match *method {
+            hyper::Method::Get  => Method::Get,
+            hyper::Method::Post => Method::Post,
+            hyper::Method::Patch => Method::Patch,
+            hyper::Method::Put => Method::Put,
+            hyper::Method::Delete => Method::Delete,
+            hyper::Method::Options => Method::Options,
+            hyper::Method::Head => Method::Head,
+            hyper::Method::Trace => Method::Trace,
+            _ => unreachable!()
         }
     }
 }
@@ -63,6 +83,10 @@ impl Request {
             route: route,
             body: body
         }
+    }
+
+    pub fn method(&self) -> Method {
+        Method::from_hyper(&self.method)
     }
 }
 
