@@ -18,28 +18,33 @@ pub struct Endpoint {
 pub struct GetBuilder {
     path: String,
     urlsegment: HashMap<String,String>,
-    parameter: HashMap<String,String>
+    parameter: HashMap<String,String>,
+    header: HashMap<String,String>
 }
 
 pub struct PostBuilder {
     path: String,
-    parameter: HashMap<String,String>
+    parameter: HashMap<String,String>,
+    header: HashMap<String,String>
 }
 
 pub struct PutBuilder {
     path: String,
-    parameter: HashMap<String,String>
+    parameter: HashMap<String,String>,
+    header: HashMap<String,String>
 }
 
 pub struct PatchBuilder {
     path: String,
     urlsegment: HashMap<String,String>,
-    parameter: HashMap<String,String>
+    parameter: HashMap<String,String>,
+    header: HashMap<String,String>
 }
 
 pub struct DeleteBuilder {
     path: String,
-    urlsegment: HashMap<String,String>
+    urlsegment: HashMap<String,String>,
+    header: HashMap<String,String>
 }
 
 #[derive(Debug, Clone)]
@@ -47,13 +52,16 @@ pub struct Request {
     inner: http::Request
 }
 
+pub struct HeaderBuilder {
+    header: HashMap<String,String>
+}
+
 pub struct Header {
-
+    inner: http::Header
 }
 
-pub struct Client {
+pub struct Client;
 
-}
 #[derive(Debug, Clone, PartialEq)]
 pub enum Method
 {
@@ -87,7 +95,8 @@ impl Endpoint {
         EndpointBuilder {
             url: String::new(),
             timeout: Duration::from_secs(10),
-            header: HashMap::new()}
+            header: HashMap::new()
+        }
     }
 
     fn new(builder: &EndpointBuilder) -> Endpoint {
@@ -139,7 +148,8 @@ impl GetBuilder {
         GetBuilder {
             path: String::new(),
             urlsegment: HashMap::new(),
-            parameter: HashMap::new()
+            parameter: HashMap::new(),
+            header: HashMap::new()
         }
     }
 
@@ -197,7 +207,8 @@ impl PostBuilder {
     {
         PostBuilder {
             path: String::new(),
-            parameter: HashMap::new()
+            parameter: HashMap::new(),
+            header: HashMap::new()
         }
     }
 
@@ -231,7 +242,8 @@ impl PutBuilder {
     {
         PutBuilder {
             path: String::new(),
-            parameter: HashMap::new()
+            parameter: HashMap::new(),
+            header: HashMap::new()
         }
     }
 
@@ -262,7 +274,8 @@ impl PatchBuilder {
         PatchBuilder {
             path: String::new(),
             urlsegment: HashMap::new(),
-            parameter: HashMap::new()
+            parameter: HashMap::new(),
+            header: HashMap::new()
         }
     }
 
@@ -297,7 +310,8 @@ impl DeleteBuilder {
     {
         DeleteBuilder {
             path: String::new(),
-            urlsegment: HashMap::new()
+            urlsegment: HashMap::new(),
+            header: HashMap::new()
         }
     }
 
@@ -352,13 +366,27 @@ impl Request {
     }
 }
 
-impl Header {
-    pub fn new() -> Header {
-        Header {}
+impl HeaderBuilder {
+    pub fn new() -> HeaderBuilder {
+        HeaderBuilder {
+            header: HashMap::new()
+        }
     }
 
-    pub fn add (&mut self, header: &str, value: &str)  -> &mut Header {
+    pub fn add (&mut self, header: &str, value: &str)  -> &mut HeaderBuilder {
         self
+    }
+
+    pub fn build(&self) -> Header {
+        Header {
+            inner: http::Header::new(self.header.clone()),
+        }
+    }
+}
+
+impl Header {
+    pub fn new() -> HeaderBuilder {
+        HeaderBuilder::new()
     }
 }
 

@@ -18,4 +18,4 @@ mod error;
 
 //export
 pub use error::Error;
-pub use rest::{Client, Endpoint, Request, Method};
+pub use rest::{Client, Endpoint, Request, Method, Header};

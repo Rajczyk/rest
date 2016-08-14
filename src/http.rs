@@ -47,6 +47,18 @@ pub struct Request {
      body: Option<String>
 }
 
+pub struct Header {
+    header: HashMap<String,String>
+}
+
+impl Header {
+    pub fn new(headers: HashMap<String,String>) -> Header {
+        Header {
+            header: headers
+        }
+    }
+}
+
 impl Method {
     fn to_hyper(&self) -> hyper::Method {
         match *self {
@@ -105,7 +117,7 @@ impl Handler {
     }
 }
 
-pub struct Client {  }
+pub struct Client;
 
 pub struct Endpoint
 {
