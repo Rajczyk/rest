@@ -315,6 +315,10 @@ impl Request {
     pub fn delete() -> DeleteBuilder {
         DeleteBuilder::new()
     }
+
+    pub fn method(&self) -> http::Method {
+        http::Method::Get
+    }
 }
 
 impl Header {
