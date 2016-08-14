@@ -54,7 +54,7 @@ pub struct Header {
 pub struct Client {
 
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Method
 {
     Get,
