@@ -52,12 +52,8 @@ pub struct Request {
     inner: http::Request
 }
 
-pub struct HeaderBuilder {
-    header: HashMap<String,String>
-}
-
 pub struct Header {
-    inner: http::Header
+    header: HashMap<String,String>
 }
 
 pub struct Client;
@@ -138,7 +134,7 @@ impl Client {
     }
 
     pub fn execute_headers(endpoint: &Endpoint, request: &Request, header: &Header) -> Result<String, Error> {
-        Ok(http::Client::request(&endpoint.inner, &request.inner))
+        Ok(http::Client::request(&endpoint.inner, &request.inner)) //http:Header::new(header.headers)
     }
 }
 
@@ -366,27 +362,15 @@ impl Request {
     }
 }
 
-impl HeaderBuilder {
-    pub fn new() -> HeaderBuilder {
-        HeaderBuilder {
-            header: HashMap::new()
-        }
-    }
-
-    pub fn add (&mut self, header: &str, value: &str)  -> &mut HeaderBuilder {
-        self
-    }
-
-    pub fn build(&self) -> Header {
-        Header {
-            inner: http::Header::new(self.header.clone()),
-        }
-    }
-}
-
 impl Header {
-    pub fn new() -> HeaderBuilder {
-        HeaderBuilder::new()
+    pub fn new() -> Header {
+        Header {
+            header:HashMap::new(),
+        }
+    }
+
+    pub fn add (&mut self, header: &str, value: &str)  -> &mut Header {
+        self
     }
 }
 
